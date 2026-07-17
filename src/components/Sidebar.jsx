@@ -1,8 +1,8 @@
 import React from 'react';
-import { BookOpen, Globe, BrainCircuit, LogOut, Wallet, User } from 'lucide-react';
+import { BookOpen, Globe, BrainCircuit, LogOut, Wallet, User, X } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 
-export default function Sidebar({ activeTab, setActiveTab, user, onLogout }) {
+export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isOpen, onClose }) {
   const menuItems = [
     { id: 'futures', label: 'Futures Journal', icon: BookOpen },
     { id: 'web3', label: 'Web3 Activity', icon: Globe },
@@ -11,21 +11,33 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout }) {
   ];
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-700/40 flex flex-col h-screen sticky top-0 shrink-0">
+    <aside className={`w-64 bg-slate-900 border-r border-slate-700/40 flex flex-col h-screen fixed md:sticky top-0 z-40 shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 ${
+      isOpen ? 'translate-x-0' : '-translate-x-full'
+    }`}>
       {/* Brand Header */}
       <div className="p-6 border-b border-slate-700/30 flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <div className="p-1 bg-slate-950/20 border border-slate-800 rounded-xl overflow-hidden flex items-center justify-center w-10 h-10 shrink-0">
-            <img src={logoImg} className="w-full h-full object-contain" alt="Revista Crypto Logo" />
+        <div className="flex justify-between items-center w-full">
+          <div className="flex items-center gap-3">
+            <div className="p-1 bg-slate-950/20 border border-slate-800 rounded-xl overflow-hidden flex items-center justify-center w-10 h-10 shrink-0">
+              <img src={logoImg} className="w-full h-full object-contain" alt="Revista Crypto Logo" />
+            </div>
+            <div>
+              <h2 className="font-bold text-base tracking-wide premium-title text-slate-100 leading-none">
+                Revista Crypto
+              </h2>
+              <span className="text-[10px] text-emerald-400/80 font-medium tracking-widest uppercase">
+                Trading Journal
+              </span>
+            </div>
           </div>
-          <div>
-            <h2 className="font-bold text-base tracking-wide premium-title text-slate-100 leading-none">
-              Revista Crypto
-            </h2>
-            <span className="text-[10px] text-emerald-400/80 font-medium tracking-widest uppercase">
-              Trading Journal
-            </span>
-          </div>
+          {/* Close button inside sidebar on mobile */}
+          <button 
+            onClick={onClose} 
+            className="md:hidden p-1 text-slate-500 hover:text-slate-300 transition-colors"
+            title="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -37,7 +49,10 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout }) {
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                setActiveTab(item.id);
+                onClose(); // Automatically close mobile menu when a tab is selected
+              }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
                   ? 'bg-slate-800 text-emerald-400 border-l-2 border-emerald-400 shadow-md shadow-emerald-500/5'

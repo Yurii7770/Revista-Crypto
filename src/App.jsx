@@ -7,7 +7,14 @@ import Web3Activity from './components/Web3Activity';
 import BalanceManager from './components/BalanceManager';
 import AIReview from './components/AIReview';
 import Auth from './components/Auth';
-import { AlertCircle, X } from 'lucide-react';
+import { AlertCircle, X, Menu } from 'lucide-react';
+
+// Dynamic background imports for production build assets bundling
+import futuresBg from './assets/futures_bg.png';
+import web3Bg from './assets/web3_bg.png';
+import balanceBg from './assets/balance_bg.png';
+import aiBg from './assets/ai_bg.png';
+import logoImg from './assets/logo.png';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -19,6 +26,7 @@ export default function App() {
   const [selectedTradeForAudit, setSelectedTradeForAudit] = useState(null);
   const [showConfigHelp, setShowConfigHelp] = useState(false);
   const [activePositions, setActivePositions] = useState([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Map active tab to subtle CSS geometric pattern classes
   const bgPatterns = {
@@ -31,12 +39,12 @@ export default function App() {
 
   // Map active tab to background image assets
   const bgImages = {
-    futures: '/src/assets/futures_bg.png',
-    web3: '/src/assets/web3_bg.png',
-    balance: '/src/assets/balance_bg.png',
-    ai: '/src/assets/ai_bg.png'
+    futures: futuresBg,
+    web3: web3Bg,
+    balance: balanceBg,
+    ai: aiBg
   };
-  const activeBg = bgImages[activeTab] || '/src/assets/futures_bg.png';
+  const activeBg = bgImages[activeTab] || futuresBg;
 
   // 1. Listen to Auth state changes
   useEffect(() => {
@@ -153,18 +161,44 @@ export default function App() {
   }
 
   return (
-    <div className="flex bg-slate-900 min-h-screen">
-      {/* Left Sidebar */}
+    <div className="flex flex-col md:flex-row bg-slate-900 min-h-screen">
+      {/* Mobile Sticky Header */}
+      <header className="md:hidden bg-slate-950/80 border-b border-slate-800/80 p-4 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <div className="p-1 bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex items-center justify-center w-8 h-8">
+            <img src={logoImg} className="w-full h-full object-contain" alt="Logo" />
+          </div>
+          <span className="font-bold text-xs tracking-wider text-slate-100 uppercase">Revista Crypto</span>
+        </div>
+        <button 
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="p-1.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-slate-200 transition-colors"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      </header>
+
+      {/* Mobile Drawer Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-30 md:hidden transition-all duration-300"
+          onClick={() => setIsMobileMenuOpen(false)}
+        ></div>
+      )}
+
+      {/* Left Sidebar (Desktop fixed / Mobile sliding drawer) */}
       <Sidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
         user={user} 
         onLogout={handleLogout} 
         onToggleHelp={() => setShowConfigHelp(prev => !prev)}
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Main Content Area */}
-      <main className={`flex-1 overflow-y-auto h-screen p-8 relative transition-all duration-500 ${activePattern}`}>
+      <main className={`flex-1 overflow-y-auto h-screen p-4 sm:p-8 relative transition-all duration-500 ${activePattern}`}>
         {/* Subtle dynamic background image (very low opacity to act as texture) */}
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-[0.07] mix-blend-overlay pointer-events-none transition-all duration-700"
