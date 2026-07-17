@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { authService, isDemoMode } from '../services/supabase';
 import { Shield, Key, Mail, Lock, AlertTriangle, AlertCircle } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 
 export default function Auth({ onAuthSuccess }) {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -16,37 +17,24 @@ export default function Auth({ onAuthSuccess }) {
 
     try {
       if (isSignUp) {
-        const { data, error: signUpErr } = await authService.signUp(email, password);
-        if (signUpErr) throw signUpErr;
-        authService.triggerMockAuthChanged();
-        
-        // Email confirmation is required if session is null and not in demo mode
-        if (!isDemoMode && !data.session) {
-          setError('Registration successful! Please check your email to confirm your account, then sign in.');
-          setIsSignUp(false); // Switch to Sign In view
-          setPassword(''); // Reset password field
-          return;
-        }
-        
-        if (data.user) onAuthSuccess(data.user);
+        const user = await authService.signUp(email, password);
+        onAuthSuccess(user);
       } else {
-        const { data, error: signInErr } = await authService.signIn(email, password);
-        if (signInErr) throw signInErr;
-        authService.triggerMockAuthChanged();
-        if (data.user) onAuthSuccess(data.user);
+        const user = await authService.signIn(email, password);
+        onAuthSuccess(user);
       }
     } catch (err) {
-      setError(err.message || 'Authentication error');
+      setError(err.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 relative px-4 overflow-hidden">
-      {/* Dynamic ambient backgrounds */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 relative overflow-hidden">
+      {/* Background decoration elements */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-slate-500/5 rounded-full blur-[100px] pointer-events-none"></div>
 
       <div className="w-full max-w-md glass-panel p-8 relative z-10 shine-effect">
         {/* Banner for Demo mode */}
@@ -62,7 +50,7 @@ export default function Auth({ onAuthSuccess }) {
 
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center p-1 bg-slate-800 border border-slate-700/60 rounded-2xl mb-4 shadow-inner w-14 h-14 overflow-hidden">
-            <img src="/src/assets/logo.png" className="w-full h-full object-contain" alt="Revista Crypto Logo" />
+            <img src={logoImg} className="w-full h-full object-contain" alt="Revista Crypto Logo" />
           </div>
           <h1 className="text-2xl font-bold premium-title tracking-tight bg-gradient-to-r from-slate-100 via-slate-200 to-slate-400 bg-clip-text text-transparent">
             Revista Crypto
@@ -117,26 +105,18 @@ export default function Auth({ onAuthSuccess }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 mt-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/20 active:scale-[0.99] disabled:opacity-50"
           >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
-                Loading...
-              </span>
-            ) : (
-              isSignUp ? 'Create Account' : 'Sign In'
-            )}
+            {loading ? 'Processing...' : isSignUp ? 'Create Elite Account' : 'Sign In to Journal'}
           </button>
         </form>
 
-        <div className="mt-6 text-center text-xs text-slate-500">
-          {isSignUp ? 'Already have an account?' : 'New here?'}
+        <div className="mt-6 text-center">
           <button
             onClick={() => setIsSignUp(!isSignUp)}
-            className="ml-1 text-emerald-400 hover:text-emerald-300 font-semibold focus:outline-none transition-colors"
+            className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
           >
-            {isSignUp ? 'Sign In' : 'Create Account'}
+            {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
           </button>
         </div>
       </div>

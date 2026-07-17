@@ -1,8 +1,8 @@
 import React from 'react';
 import { BookOpen, Globe, BrainCircuit, LogOut, Wallet, User } from 'lucide-react';
-import { isDemoMode } from '../services/supabase';
+import logoImg from '../assets/logo.png';
 
-export default function Sidebar({ activeTab, setActiveTab, user, onLogout, onToggleHelp }) {
+export default function Sidebar({ activeTab, setActiveTab, user, onLogout }) {
   const menuItems = [
     { id: 'futures', label: 'Futures Journal', icon: BookOpen },
     { id: 'web3', label: 'Web3 Activity', icon: Globe },
@@ -16,7 +16,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, onTog
       <div className="p-6 border-b border-slate-700/30 flex flex-col gap-2">
         <div className="flex items-center gap-3">
           <div className="p-1 bg-slate-950/20 border border-slate-800 rounded-xl overflow-hidden flex items-center justify-center w-10 h-10 shrink-0">
-            <img src="/src/assets/logo.png" className="w-full h-full object-contain" alt="Revista Crypto Logo" />
+            <img src={logoImg} className="w-full h-full object-contain" alt="Revista Crypto Logo" />
           </div>
           <div>
             <h2 className="font-bold text-base tracking-wide premium-title text-slate-100 leading-none">
@@ -27,18 +27,6 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, onTog
             </span>
           </div>
         </div>
-
-        {/* Database Status Indicator (Clickable button to toggle config guide) */}
-        <button
-          onClick={onToggleHelp}
-          className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] w-fit font-medium bg-slate-800/80 border border-slate-700/50 hover:bg-slate-750 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer select-none"
-          title="Click to toggle developer setup guide"
-        >
-          <span className={`w-1.5 h-1.5 rounded-full ${isDemoMode ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`}></span>
-          <span>
-            {isDemoMode ? 'Demo Mode (Local)' : 'Supabase Connected'}
-          </span>
-        </button>
       </div>
 
       {/* Navigation Links */}
@@ -67,7 +55,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, onTog
       {user && (
         <div className="p-4 border-t border-slate-700/30 bg-slate-950/20">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700/50 flex items-center justify-center text-slate-350">
+            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700/50 flex items-center justify-center text-slate-355">
               <User className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
