@@ -94,7 +94,7 @@ export default function AIReview({ trades = [], activities = [], initialSelected
       if (line.trim().startsWith('>')) {
         const content = line.trim().substring(1).trim();
         return (
-          <blockquote key={idx} className="border-l-4 border-indigo-500 pl-4 py-2 my-4 bg-indigo-500/5 text-slate-300 rounded-r-xl italic text-xs leading-relaxed">
+          <blockquote key={idx} className="border-l-4 border-emerald-500 pl-4 py-2 my-4 bg-emerald-500/5 text-slate-300 rounded-r-xl italic text-xs leading-relaxed">
             {parseInline(content)}
           </blockquote>
         );
@@ -189,7 +189,7 @@ export default function AIReview({ trades = [], activities = [], initialSelected
       {activeSubTab === 'single' && (
         <div className="glass-panel p-6">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-700/30">
-            <BrainCircuit className="w-5 h-5 text-indigo-400" />
+            <BrainCircuit className="w-5 h-5 text-emerald-400" />
             <h3 className="text-base font-bold premium-title text-slate-100">Single Trade Audit (Post-Mortem)</h3>
           </div>
 
@@ -308,15 +308,15 @@ export default function AIReview({ trades = [], activities = [], initialSelected
               </div>
 
               {/* 3. Checklist Rules Card */}
-              <div className="glass-card p-5 border-indigo-500/20 relative overflow-hidden flex flex-col">
-                <div className="flex items-center gap-2 mb-3.5 border-b border-slate-700/30 pb-2.5 text-indigo-400">
+              <div className="glass-card p-5 border-emerald-500/20 relative overflow-hidden flex flex-col">
+                <div className="flex items-center gap-2 mb-3.5 border-b border-slate-700/30 pb-2.5 text-emerald-400">
                   <CheckSquare className="w-5 h-5 shrink-0" />
                   <span className="font-bold text-xs uppercase tracking-wider font-sans">📋 Weekly Checklist</span>
                 </div>
                 <div className="space-y-3 flex-1">
                   {weeklyResult.checklist?.map((item, index) => (
                     <div key={index} className="flex gap-2.5 items-start text-xs text-slate-300">
-                      <span className="font-bold text-indigo-400 bg-indigo-500/10 w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px]">
+                      <span className="font-bold text-emerald-400 bg-emerald-500/10 w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px]">
                         {index + 1}
                       </span>
                       <span className="leading-relaxed">{item}</span>
@@ -360,7 +360,7 @@ function AuditSkeleton() {
         <div className="h-3.5 bg-slate-800/80 rounded w-4/5"></div>
       </div>
       <div className="h-4 bg-slate-700/50 rounded w-1/5 mt-4"></div>
-      <div className="h-8 bg-slate-800/50 rounded border-l-4 border-indigo-500/30 w-full"></div>
+      <div className="h-8 bg-slate-800/50 rounded border-l-4 border-emerald-500/30 w-full"></div>
     </div>
   );
 }

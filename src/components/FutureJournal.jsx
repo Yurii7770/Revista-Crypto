@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Calendar, Filter, ArrowUpDown, Plus, Trash2, BrainCircuit, Search, Info } from 'lucide-react';
+import { Calendar, Filter, ArrowUpDown, Plus, Trash2, BrainCircuit, Search, Info, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import TradeModal from './TradeModal';
 
-export default function FutureJournal({ trades = [], onAddTrade, onDeleteTrade, onTriggerAudit }) {
+export default function FutureJournal({ trades = [], onAddTrade, onDeleteTrade, onTriggerAudit, activePositions = [] }) {
   const [filterDirection, setFilterDirection] = useState('All');
   const [filterExchange, setFilterExchange] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,6 +55,70 @@ export default function FutureJournal({ trades = [], onAddTrade, onDeleteTrade, 
           <span>Add Position</span>
         </button>
       </div>
+
+      {/* Live active positions block from Binance API */}
+      {activePositions.length > 0 && (
+        <div className="mb-6 bg-slate-950/30 rounded-2xl border border-emerald-500/20 p-5 space-y-4 tab-transition-container shadow-lg shadow-emerald-500/5">
+          <div className="flex justify-between items-center border-b border-slate-800 pb-2.5">
+            <div>
+              <h3 className="text-xs font-bold text-slate-100 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                Active Positions (Binance API Sync)
+              </h3>
+              <p className="text-[9px] text-slate-500">Live positions fetched via your portfolio API connection</p>
+            </div>
+            <span className="text-[10px] font-bold text-slate-400 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-lg">
+              Count: {activePositions.length}
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-850 text-[9px] font-bold text-slate-500 uppercase tracking-wider pb-2">
+                  <th className="py-2.5">Symbol</th>
+                  <th>Direction</th>
+                  <th>Amt / Size</th>
+                  <th>Entry Price</th>
+                  <th>Mark Price</th>
+                  <th>Margin Type</th>
+                  <th className="text-right">Unrealized PNL</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-850/30 text-xs font-medium">
+                {activePositions.map((pos, idx) => {
+                  const isLong = pos.positionAmt > 0;
+                  const absAmt = Math.abs(pos.positionAmt);
+                  const isProfit = pos.unRealizedProfit >= 0;
+
+                  return (
+                    <tr key={idx} className="hover:bg-slate-900/10 transition-colors">
+                      <td className="py-2.5 font-bold text-slate-200">{pos.symbol}</td>
+                      <td>
+                        <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
+                          isLong 
+                            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' 
+                            : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
+                        }`}>
+                          {isLong ? <ArrowUpRight className="w-2.5 h-2.5" /> : <ArrowDownRight className="w-2.5 h-2.5" />}
+                          {isLong ? 'Long' : 'Short'} ({pos.leverage}x)
+                        </span>
+                      </td>
+                      <td className="text-slate-355 font-mono">{absAmt}</td>
+                      <td className="text-slate-450 font-mono">${pos.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="text-slate-350 font-mono">${pos.markPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="text-slate-450 capitalize">{pos.marginType}</td>
+                      <td className={`text-right font-mono font-bold ${isProfit ? 'text-emerald-400 glow-emerald' : 'text-rose-400 glow-rose'}`}>
+                        {isProfit ? '+' : ''}${pos.unRealizedProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Filters and Search Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
@@ -196,7 +260,7 @@ export default function FutureJournal({ trades = [], onAddTrade, onDeleteTrade, 
                     <td className="py-3 px-4 relative">
                       {trade.rationale ? (
                         <div 
-                          className="flex items-center gap-1 text-indigo-400 cursor-help hover:text-indigo-300 transition-colors"
+                          className="flex items-center gap-1 text-slate-400 cursor-help hover:text-slate-300 transition-colors"
                           onMouseEnter={() => setHoveredRationale(trade.id)}
                           onMouseLeave={() => setHoveredRationale(null)}
                         >
@@ -222,7 +286,7 @@ export default function FutureJournal({ trades = [], onAddTrade, onDeleteTrade, 
                         <button
                           onClick={() => onTriggerAudit(trade)}
                           title="AI Trade Audit"
-                          className="p-1.5 bg-slate-800 hover:bg-slate-700/80 border border-slate-700/50 hover:border-slate-600 text-indigo-400 hover:text-indigo-300 rounded-lg transition-all"
+                          className="p-1.5 bg-slate-800 hover:bg-slate-700/80 border border-slate-700/50 hover:border-slate-600 text-emerald-400 hover:text-emerald-300 rounded-lg transition-all"
                         >
                           <BrainCircuit className="w-3.5 h-3.5" />
                         </button>

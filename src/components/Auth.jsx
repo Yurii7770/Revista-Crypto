@@ -19,6 +19,15 @@ export default function Auth({ onAuthSuccess }) {
         const { data, error: signUpErr } = await authService.signUp(email, password);
         if (signUpErr) throw signUpErr;
         authService.triggerMockAuthChanged();
+        
+        // Email confirmation is required if session is null and not in demo mode
+        if (!isDemoMode && !data.session) {
+          setError('Registration successful! Please check your email to confirm your account, then sign in.');
+          setIsSignUp(false); // Switch to Sign In view
+          setPassword(''); // Reset password field
+          return;
+        }
+        
         if (data.user) onAuthSuccess(data.user);
       } else {
         const { data, error: signInErr } = await authService.signIn(email, password);
@@ -37,7 +46,7 @@ export default function Auth({ onAuthSuccess }) {
     <div className="min-h-screen flex items-center justify-center bg-slate-900 relative px-4 overflow-hidden">
       {/* Dynamic ambient backgrounds */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="w-full max-w-md glass-panel p-8 relative z-10 shine-effect">
         {/* Banner for Demo mode */}
@@ -52,14 +61,14 @@ export default function Auth({ onAuthSuccess }) {
         )}
 
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center p-3 bg-slate-800 border border-slate-700/60 rounded-2xl mb-4 shadow-inner text-emerald-400">
-            <Shield className="w-8 h-8" />
+          <div className="inline-flex items-center justify-center p-1 bg-slate-800 border border-slate-700/60 rounded-2xl mb-4 shadow-inner w-14 h-14 overflow-hidden">
+            <img src="/src/assets/logo.png" className="w-full h-full object-contain" alt="Revista Crypto Logo" />
           </div>
           <h1 className="text-2xl font-bold premium-title tracking-tight bg-gradient-to-r from-slate-100 via-slate-200 to-slate-400 bg-clip-text text-transparent">
-            Crypto Ledger Pro
+            Revista Crypto
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Advanced Analytical Trading Journal
+            Elite Professional Trading Journal
           </p>
         </div>
 
@@ -82,7 +91,7 @@ export default function Auth({ onAuthSuccess }) {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="trade@cryptoledger.pro"
+                placeholder="trade@revista.crypto"
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-700/50 rounded-xl text-sm focus:outline-none focus:border-emerald-500/80 text-slate-200 placeholder-slate-600 transition-colors"
               />
             </div>

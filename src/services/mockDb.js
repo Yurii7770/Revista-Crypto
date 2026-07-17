@@ -85,6 +85,14 @@ const SAMPLE_ACTIVITIES = [
   }
 ];
 
+const SAMPLE_BALANCES = [
+  { exchange_name: "Binance", balance: 5000 },
+  { exchange_name: "Bybit", balance: 3500 },
+  { exchange_name: "OKX", balance: 1200 },
+  { exchange_name: "BingX", balance: 800 },
+  { exchange_name: "DEX / Other", balance: 2500 }
+];
+
 const MOCK_USER = {
   id: "mock-user-123",
   email: "demo@cryptoledger.pro",
@@ -97,7 +105,6 @@ export const mockDb = {
     try {
       const session = localStorage.getItem("clp_mock_session");
       if (!session) return null;
-      // Safeguard against invalid formats or raw string "undefined"
       if (session === "undefined") {
         localStorage.removeItem("clp_mock_session");
         return null;
@@ -197,6 +204,79 @@ export const mockDb = {
     const activities = mockDb.getActivities();
     const filtered = activities.filter(a => a.id !== id);
     localStorage.setItem("clp_mock_activities", JSON.stringify(filtered));
+    return { error: null };
+  },
+
+  // Balances CRUD
+  getBalances: () => {
+    try {
+      const data = localStorage.getItem("clp_mock_balances");
+      if (!data || data === "undefined") {
+        localStorage.setItem("clp_mock_balances", JSON.stringify(SAMPLE_BALANCES));
+        return SAMPLE_BALANCES;
+      }
+      return JSON.parse(data);
+    } catch (e) {
+      console.warn("Failed to parse mock balances, resetting defaults", e);
+      localStorage.setItem("clp_mock_balances", JSON.stringify(SAMPLE_BALANCES));
+      return SAMPLE_BALANCES;
+    }
+  },
+
+  updateBalance: (exchangeName, balance) => {
+    const balances = mockDb.getBalances();
+    const index = balances.findIndex(b => b.exchange_name === exchangeName);
+    const updatedBalance = {
+      exchange_name: exchangeName,
+      balance: Number(balance),
+      updated_at: new Date().toISOString()
+    };
+    
+    if (index !== -1) {
+      balances[index] = { ...balances[index], ...updatedBalance };
+    } else {
+      balances.push(updatedBalance);
+    }
+    
+    localStorage.setItem("clp_mock_balances", JSON.stringify(balances));
+    return { data: updatedBalance, error: null };
+  },
+
+  // Mock API Credentials Storage
+  getApiKeys: () => {
+    try {
+      const data = localStorage.getItem("clp_mock_api_keys");
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  saveApiKey: (exchangeName, apiKey, apiSecretEncrypted, iv) => {
+    const keys = mockDb.getApiKeys();
+    const index = keys.findIndex(k => k.exchange_name === exchangeName);
+    const newKey = {
+      id: "mock-key-" + Math.random().toString(36).substr(2, 9),
+      exchange_name: exchangeName,
+      api_key: apiKey,
+      api_secret: apiSecretEncrypted,
+      iv: iv,
+      updated_at: new Date().toISOString()
+    };
+    
+    if (index !== -1) {
+      keys[index] = newKey;
+    } else {
+      keys.push(newKey);
+    }
+    localStorage.setItem("clp_mock_api_keys", JSON.stringify(keys));
+    return { data: newKey, error: null };
+  },
+
+  deleteApiKey: (exchangeName) => {
+    const keys = mockDb.getApiKeys();
+    const filtered = keys.filter(k => k.exchange_name !== exchangeName);
+    localStorage.setItem("clp_mock_api_keys", JSON.stringify(filtered));
     return { error: null };
   }
 };

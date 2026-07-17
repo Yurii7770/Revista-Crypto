@@ -99,7 +99,10 @@ export const dbService = {
       return mockDb.addTrade(trade);
     }
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !user) {
+        return { data: null, error: userErr || new Error("User session not found. Please sign in again.") };
+      }
       const { data, error } = await supabase
         .from('futures_trades')
         .insert([{ ...trade, user_id: user.id }])
@@ -145,7 +148,10 @@ export const dbService = {
       return mockDb.addActivity(activity);
     }
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !user) {
+        return { data: null, error: userErr || new Error("User session not found. Please sign in again.") };
+      }
       const { data, error } = await supabase
         .from('other_activities')
         .insert([{ ...activity, user_id: user.id }])
@@ -168,6 +174,178 @@ export const dbService = {
       return { error };
     } catch (err) {
       return { error: err };
+    }
+  },
+
+  getBalances: async () => {
+    if (isDemoMode) {
+      return { data: mockDb.getBalances(), error: null };
+    }
+    try {
+      const { data, error } = await supabase
+        .from('exchange_balances')
+        .select('*')
+        .order('exchange_name', { ascending: true });
+      return { data, error };
+    } catch (err) {
+      return { data: null, error: err };
+    }
+  },
+
+  updateBalance: async (exchangeName, balance) => {
+    if (isDemoMode) {
+      return mockDb.updateBalance(exchangeName, balance);
+    }
+    try {
+      const { data: { user }, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !user) {
+        return { data: null, error: userErr || new Error("User session not found. Please sign in again.") };
+      }
+      
+      const { data, error } = await supabase
+        .from('exchange_balances')
+        .upsert([{ 
+          exchange_name: exchangeName, 
+          balance: Number(balance), 
+          user_id: user.id,
+          updated_at: new Date().toISOString()
+        }], { onConflict: 'user_id, exchange_name' })
+        .select();
+        
+      return { data: data ? data[0] : null, error };
+    } catch (err) {
+      return { data: null, error: err };
+    }
+  },
+
+  // API Configuration Management
+  getApiKeys: async () => {
+    if (isDemoMode) {
+      return { data: mockDb.getApiKeys(), error: null };
+    }
+    try {
+      const { data, error } = await supabase
+        .from('user_api_keys')
+        .select('*');
+      return { data, error };
+    } catch (err) {
+      return { data: null, error: err };
+    }
+  },
+
+  saveApiKey: async (exchangeName, apiKey, apiSecretEncrypted, iv) => {
+    if (isDemoMode) {
+      return mockDb.saveApiKey(exchangeName, apiKey, apiSecretEncrypted, iv);
+    }
+    try {
+      const { data: { user }, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !user) {
+        throw new Error("User session not found");
+      }
+      const { data, error } = await supabase
+        .from('user_api_keys')
+        .upsert([{
+          exchange_name: exchangeName,
+          api_key: apiKey,
+          api_secret: apiSecretEncrypted,
+          iv: iv,
+          user_id: user.id,
+          updated_at: new Date().toISOString()
+        }], { onConflict: 'user_id, exchange_name' })
+        .select();
+      return { data: data ? data[0] : null, error };
+    } catch (err) {
+      return { data: null, error: err };
+    }
+  },
+
+  deleteApiKey: async (exchangeName) => {
+    if (isDemoMode) {
+      return mockDb.deleteApiKey(exchangeName);
+    }
+    try {
+      const { error } = await supabase
+        .from('user_api_keys')
+        .delete()
+        .eq('exchange_name', exchangeName);
+      return { error };
+    } catch (err) {
+      return { error: err };
+    }
+  },
+
+  encryptSecret: async (rawSecret) => {
+    try {
+      const res = await fetch('/api/encrypt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: rawSecret })
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to encrypt API Secret');
+      }
+      return await res.json(); // returns { encrypted, iv }
+    } catch (err) {
+      console.error("Encryption error:", err);
+      throw err;
+    }
+  },
+
+  syncExchangeData: async (exchangeName, apiKey, apiSecretEncrypted, iv) => {
+    if (isDemoMode) {
+      // Simulate sync delay and mock data
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      return {
+        data: {
+          balance: 8450.75,
+          positions: [
+            {
+              symbol: 'BTCUSDT',
+              positionAmt: 0.125,
+              entryPrice: 89620.00,
+              markPrice: 90150.50,
+              unRealizedProfit: 66.31,
+              leverage: 10,
+              marginType: 'cross'
+            },
+            {
+              symbol: 'ETHUSDT',
+              positionAmt: -1.5,
+              entryPrice: 3120.00,
+              markPrice: 3075.20,
+              unRealizedProfit: 67.20,
+              leverage: 5,
+              marginType: 'isolated'
+            }
+          ]
+        },
+        error: null
+      };
+    }
+
+    try {
+      const res = await fetch('/api/sync-exchange', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exchange_name: exchangeName,
+          api_key: apiKey,
+          api_secret_encrypted: apiSecretEncrypted,
+          iv: iv
+        })
+      });
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Exchange sync server error');
+      }
+      
+      const syncResult = await res.json();
+      return { data: syncResult, error: null };
+    } catch (err) {
+      console.error("Exchange sync client error:", err);
+      return { data: null, error: err.message || err };
     }
   }
 };

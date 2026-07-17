@@ -150,7 +150,7 @@ export default function Web3Activity({ activities = [], onAddActivity, onDeleteA
                     <td className="py-3 px-4 relative">
                       {act.rationale ? (
                         <div 
-                          className="flex items-center gap-1 text-indigo-400 cursor-help hover:text-indigo-300 transition-colors"
+                          className="flex items-center gap-1 text-slate-400 cursor-help hover:text-slate-300 transition-colors"
                           onMouseEnter={() => setHoveredDescription(act.id)}
                           onMouseLeave={() => setHoveredDescription(null)}
                         >

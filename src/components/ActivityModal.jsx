@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { X, Calendar, AlertCircle, Award } from 'lucide-react';
+import { X, AlertCircle, Award } from 'lucide-react';
+import CustomDateTimePicker from './CustomDateTimePicker';
 
 export default function ActivityModal({ isOpen, onClose, onSave }) {
   const [activityName, setActivityName] = useState('Promo Campaign');
+  const [customActivityName, setCustomActivityName] = useState('');
   const [exchangePlatform, setExchangePlatform] = useState('');
   const [pnl, setPnl] = useState('');
   const [rationale, setRationale] = useState('');
@@ -15,6 +17,12 @@ export default function ActivityModal({ isOpen, onClose, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setValidationError('');
+
+    const finalActivityName = activityName === 'Other' ? customActivityName.trim() : activityName;
+    if (!finalActivityName) {
+      setValidationError('Please enter a custom activity name');
+      return;
+    }
 
     const pnlNum = Number(pnl);
     if (isNaN(pnlNum)) {
@@ -31,7 +39,7 @@ export default function ActivityModal({ isOpen, onClose, onSave }) {
     setSaving(true);
     try {
       await onSave({
-        activity_name: activityName,
+        activity_name: finalActivityName,
         exchange_platform: exchangePlatform.trim(),
         pnl: pnlNum,
         rationale: rationale.trim(),
@@ -40,6 +48,7 @@ export default function ActivityModal({ isOpen, onClose, onSave }) {
       onClose();
       // Reset
       setActivityName('Promo Campaign');
+      setCustomActivityName('');
       setExchangePlatform('');
       setPnl('');
       setRationale('');
@@ -81,7 +90,7 @@ export default function ActivityModal({ isOpen, onClose, onSave }) {
           {/* Row 1: Activity Name & Exchange Platform */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Activity Type</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider font-semibold">Activity Type</label>
               <select
                 value={activityName}
                 onChange={(e) => setActivityName(e.target.value)}
@@ -91,7 +100,19 @@ export default function ActivityModal({ isOpen, onClose, onSave }) {
                 <option value="Arbitrage">Arbitrage</option>
                 <option value="Retrodrop">Retrodrop</option>
                 <option value="Staking">Staking</option>
+                <option value="Other">Other</option>
               </select>
+
+              {activityName === 'Other' && (
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter custom activity..."
+                  value={customActivityName}
+                  onChange={(e) => setCustomActivityName(e.target.value)}
+                  className="w-full px-3.5 py-2 mt-2 bg-slate-900 border border-slate-700/50 rounded-xl text-xs focus:outline-none focus:border-emerald-500 text-slate-200"
+                />
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Platform / DEX</label>
@@ -106,8 +127,8 @@ export default function ActivityModal({ isOpen, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Row 2: PNL & Date */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Row 2: PNL & Date (Polished Custom DateTimePicker) */}
+          <div className="grid grid-cols-2 gap-4 animate-fade-in">
             <div>
               <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Net PNL (USD)</label>
               <div className="relative">
@@ -122,16 +143,11 @@ export default function ActivityModal({ isOpen, onClose, onSave }) {
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Activity Date</label>
-              <input
-                type="datetime-local"
-                required
-                value={activityDate}
-                onChange={(e) => setActivityDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700/50 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-slate-200 text-slate-400"
-              />
-            </div>
+            <CustomDateTimePicker
+              value={activityDate}
+              onChange={setActivityDate}
+              label="Activity Date"
+            />
           </div>
 
           {/* Row 3: Description */}

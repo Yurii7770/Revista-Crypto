@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Calendar, DollarSign, AlertCircle, Sparkles } from 'lucide-react';
+import { X, DollarSign, AlertCircle } from 'lucide-react';
+import CustomDateTimePicker from './CustomDateTimePicker';
 
 export default function TradeModal({ isOpen, onClose, onSave }) {
   const [tokenName, setTokenName] = useState('');
@@ -71,7 +72,7 @@ export default function TradeModal({ isOpen, onClose, onSave }) {
       setDateOpened('');
       setDateClosed('');
     } catch (err) {
-      setValidationError(err.message || 'Failed to save trade');
+      setValidationError(err.message || 'Failed to save trade position');
     } finally {
       setSaving(false);
     }
@@ -82,14 +83,14 @@ export default function TradeModal({ isOpen, onClose, onSave }) {
       {/* Backdrop */}
       <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={onClose}></div>
 
-      {/* Modal Dialog Content */}
+      {/* Modal Dialog */}
       <div className="w-full max-w-lg glass-panel relative z-10 p-6 shadow-2xl overflow-y-auto max-h-[90vh]">
         <div className="flex justify-between items-center mb-6 border-b border-slate-700/40 pb-4">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-400">
-              <Sparkles className="w-4.5 h-4.5" />
+              <DollarSign className="w-4.5 h-4.5" />
             </div>
-            <h3 className="text-lg font-bold premium-title text-slate-100">Add Futures Position</h3>
+            <h3 className="text-lg font-bold premium-title text-slate-100">Log Closed Position</h3>
           </div>
           <button onClick={onClose} className="p-1 text-slate-500 hover:text-slate-200 transition-colors">
             <X className="w-5 h-5" />
@@ -107,25 +108,25 @@ export default function TradeModal({ isOpen, onClose, onSave }) {
           {/* Row 1: Token Name & Direction */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Token</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Token Name</label>
               <input
                 type="text"
                 required
-                placeholder="e.g. BTC, ETH, PEPE"
+                placeholder="BTC, ETH, SOL"
                 value={tokenName}
                 onChange={(e) => setTokenName(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700/50 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-slate-200"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Direction</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider font-semibold">Direction</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setDirection('Long')}
                   className={`py-2.5 text-xs font-bold rounded-xl border transition-all ${
                     direction === 'Long'
-                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400 shadow-md shadow-emerald-500/5'
+                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-455 shadow-md shadow-emerald-500/5'
                       : 'bg-slate-900 border-slate-700/50 text-slate-400 hover:text-slate-200'
                   }`}
                 >
@@ -207,28 +208,18 @@ export default function TradeModal({ isOpen, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Row 4: Dates */}
+          {/* Row 4: Dates (Beautiful custom calendar date pickers) */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Date Opened</label>
-              <input
-                type="datetime-local"
-                required
-                value={dateOpened}
-                onChange={(e) => setDateOpened(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700/50 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-slate-400"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Date Closed</label>
-              <input
-                type="datetime-local"
-                required
-                value={dateClosed}
-                onChange={(e) => setDateClosed(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700/50 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-slate-400"
-              />
-            </div>
+            <CustomDateTimePicker
+              value={dateOpened}
+              onChange={setDateOpened}
+              label="Date Opened"
+            />
+            <CustomDateTimePicker
+              value={dateClosed}
+              onChange={setDateClosed}
+              label="Date Closed"
+            />
           </div>
 
           {/* Row 5: Rationale */}

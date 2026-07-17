@@ -4,9 +4,10 @@ import Sidebar from './components/Sidebar';
 import AnalyticsPanel from './components/AnalyticsPanel';
 import FutureJournal from './components/FutureJournal';
 import Web3Activity from './components/Web3Activity';
+import BalanceManager from './components/BalanceManager';
 import AIReview from './components/AIReview';
 import Auth from './components/Auth';
-import { AlertCircle, Terminal, HelpCircle, X } from 'lucide-react';
+import { AlertCircle, X } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -14,8 +15,28 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('futures');
   const [trades, setTrades] = useState([]);
   const [activities, setActivities] = useState([]);
+  const [balances, setBalances] = useState([]);
   const [selectedTradeForAudit, setSelectedTradeForAudit] = useState(null);
-  const [showConfigHelp, setShowConfigHelp] = useState(true);
+  const [showConfigHelp, setShowConfigHelp] = useState(false);
+  const [activePositions, setActivePositions] = useState([]);
+
+  // Map active tab to subtle CSS geometric pattern classes
+  const bgPatterns = {
+    futures: 'bg-pattern-futures',
+    web3: 'bg-pattern-web3',
+    balance: 'bg-pattern-balance',
+    ai: 'bg-pattern-ai'
+  };
+  const activePattern = bgPatterns[activeTab] || 'bg-pattern-futures';
+
+  // Map active tab to background image assets
+  const bgImages = {
+    futures: '/src/assets/futures_bg.png',
+    web3: '/src/assets/web3_bg.png',
+    balance: '/src/assets/balance_bg.png',
+    ai: '/src/assets/ai_bg.png'
+  };
+  const activeBg = bgImages[activeTab] || '/src/assets/futures_bg.png';
 
   // 1. Listen to Auth state changes
   useEffect(() => {
@@ -33,7 +54,7 @@ export default function App() {
     };
   }, []);
 
-  // 2. Load trades and activities when user is authenticated
+  // 2. Load trades, activities, and balances when user is authenticated
   useEffect(() => {
     if (user) {
       loadData();
@@ -42,13 +63,15 @@ export default function App() {
 
   const loadData = async () => {
     try {
-      const [tradesRes, activitiesRes] = await Promise.all([
+      const [tradesRes, activitiesRes, balancesRes] = await Promise.all([
         dbService.getTrades(),
-        dbService.getActivities()
+        dbService.getActivities(),
+        dbService.getBalances()
       ]);
       
       if (tradesRes.data) setTrades(tradesRes.data);
       if (activitiesRes.data) setActivities(activitiesRes.data);
+      if (balancesRes.data) setBalances(balancesRes.data);
     } catch (err) {
       console.error("Error loading journal data:", err);
     }
@@ -90,6 +113,24 @@ export default function App() {
     setActivities(prev => prev.filter(a => a.id !== id));
   };
 
+  // Update Exchange Balances
+  const handleUpdateBalance = async (exchangeName, balanceAmount) => {
+    const { data, error } = await dbService.updateBalance(exchangeName, balanceAmount);
+    if (error) throw error;
+    if (data) {
+      setBalances(prev => {
+        const index = prev.findIndex(b => b.exchange_name === exchangeName);
+        if (index !== -1) {
+          const updated = [...prev];
+          updated[index] = data;
+          return updated;
+        } else {
+          return [...prev, data];
+        }
+      });
+    }
+  };
+
   // Switch to AI tab and select specific trade
   const handleTriggerAudit = (trade) => {
     setSelectedTradeForAudit(trade);
@@ -119,18 +160,25 @@ export default function App() {
         setActiveTab={setActiveTab} 
         user={user} 
         onLogout={handleLogout} 
+        onToggleHelp={() => setShowConfigHelp(prev => !prev)}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto h-screen p-8 relative">
+      <main className={`flex-1 overflow-y-auto h-screen p-8 relative transition-all duration-500 ${activePattern}`}>
+        {/* Subtle dynamic background image (very low opacity to act as texture) */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-[0.07] mix-blend-overlay pointer-events-none transition-all duration-700"
+          style={{ backgroundImage: `url(${activeBg})` }}
+        ></div>
+
         {/* Glow ambient background items */}
         <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="absolute bottom-0 left-1/4 w-[450px] h-[450px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/4 w-[450px] h-[450px] bg-slate-500/5 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div className="relative z-10 max-w-7xl mx-auto space-y-6">
           {/* Environment Config Help Notification in Demo mode */}
           {isDemoMode && showConfigHelp && (
-            <div className="p-4 bg-slate-800/80 border border-slate-700/60 backdrop-blur-md rounded-2xl flex items-start justify-between gap-4 shadow-xl">
+            <div className="p-4 bg-slate-800/80 border border-slate-700/60 backdrop-blur-md rounded-2xl flex items-start justify-between gap-4 shadow-xl text-left">
               <div className="flex gap-3">
                 <div className="p-2 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-400 shrink-0">
                   <AlertCircle className="w-5 h-5" />
@@ -139,7 +187,7 @@ export default function App() {
                   <h4 className="text-xs font-bold text-slate-200">Connect to Real Database &amp; AI Coach</h4>
                   <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
                     The application is currently running on a local mock database (LocalStorage) with pre-populated transactions. 
-                    To connect your live Supabase database and analyze trades via OpenRouter, create a <code className="text-amber-300 font-mono text-[10px] bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">.env</code> file in the root folder with the following variables:
+                    To connect your live Supabase database and analyze trades via OpenRouter, edit the <code className="text-amber-300 font-mono text-[10px] bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">.env</code> file in the root folder with the following variables:
                   </p>
                   <pre className="text-[9px] bg-slate-950/80 text-emerald-400 p-2.5 rounded-xl border border-slate-800 mt-2 font-mono leading-normal select-all">
                     VITE_SUPABASE_URL=your_supabase_url{"\n"}
@@ -157,17 +205,20 @@ export default function App() {
             </div>
           )}
 
-          {/* Core Analytics Panel */}
-          <AnalyticsPanel trades={trades} activities={activities} />
+          {/* Core Analytics Panel (Only shown on Journal tabs to save space) */}
+          {(activeTab === 'futures' || activeTab === 'web3') && (
+            <AnalyticsPanel trades={trades} activities={activities} mode={activeTab} />
+          )}
 
           {/* Router views depending on Active Tab */}
-          <div className="transition-all duration-300">
+          <div className="tab-transition-container" key={activeTab}>
             {activeTab === 'futures' && (
               <FutureJournal
                 trades={trades}
                 onAddTrade={handleAddTrade}
                 onDeleteTrade={handleDeleteTrade}
                 onTriggerAudit={handleTriggerAudit}
+                activePositions={activePositions}
               />
             )}
 
@@ -176,6 +227,17 @@ export default function App() {
                 activities={activities}
                 onAddActivity={handleAddActivity}
                 onDeleteActivity={handleDeleteActivity}
+              />
+            )}
+
+            {activeTab === 'balance' && (
+              <BalanceManager
+                balances={balances}
+                onUpdateBalance={handleUpdateBalance}
+                trades={trades}
+                activities={activities}
+                activePositions={activePositions}
+                setActivePositions={setActivePositions}
               />
             )}
 

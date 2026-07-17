@@ -117,3 +117,62 @@
   left: 100%;
   top: 100%;
 }
+
+/* Custom CSS Background Patterns (ultra-subtle) */
+.bg-pattern-futures {
+  background-image: 
+    linear-gradient(to right, rgba(148, 163, 184, 0.015) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.015) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.bg-pattern-web3 {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.02) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.bg-pattern-balance {
+  background-image: 
+    radial-gradient(circle at 90% 10%, rgba(16, 185, 129, 0.015) 0%, transparent 60%),
+    linear-gradient(rgba(148, 163, 184, 0.01) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 40px;
+}
+
+.bg-pattern-ai {
+  background-image: 
+    repeating-linear-gradient(45deg, rgba(148, 163, 184, 0.008) 0px, rgba(148, 163, 184, 0.008) 1px, transparent 1px, transparent 8px);
+}
+
+/* Custom styled datetime-local inputs */
+.custom-datetime-container input[type="datetime-local"] {
+  position: relative;
+  color-scheme: dark; /* Sets default browser picker to dark theme */
+}
+
+.custom-datetime-container input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Premium smooth tab switching animations */
+@keyframes tab-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-transition-container {
+  animation: tab-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
