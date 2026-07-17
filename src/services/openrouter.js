@@ -16,7 +16,7 @@ async function fetchOpenRouter(systemPrompt, userPrompt) {
         "X-Title": "Crypto Ledger Pro"
       },
       body: JSON.stringify({
-        model: "openrouter/free",
+        model: "google/gemini-2.5-flash:free",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
