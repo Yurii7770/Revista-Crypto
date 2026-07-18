@@ -1,22 +1,45 @@
-const openrouterKey = import.meta.env.VITE_OPENROUTER_API_KEY || "";
+export const getOpenRouterKey = () => {
+  const localKey = localStorage.getItem("clp_openrouter_api_key");
+  if (localKey) return localKey;
+  
+  // Fallback to VITE_OPENROUTER_API_KEY in dev environment
+  if (import.meta.env.DEV) {
+    const envKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+    if (envKey && envKey !== "YOUR_OPENROUTER_API_KEY") {
+      return envKey;
+    }
+  }
+  return "";
+};
 
-export const isAiDemoMode = !openrouterKey || openrouterKey === "YOUR_OPENROUTER_API_KEY";
+export const setOpenRouterKey = (key) => {
+  if (key) {
+    localStorage.setItem("clp_openrouter_api_key", key.trim());
+  } else {
+    localStorage.removeItem("clp_openrouter_api_key");
+  }
+};
+
+export const isAiDemoMode = () => {
+  return !getOpenRouterKey();
+};
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // A function to call OpenRouter
 async function fetchOpenRouter(systemPrompt, userPrompt) {
   try {
+    const key = getOpenRouterKey();
     const response = await fetch(OPENROUTER_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${openrouterKey}`,
+        "Authorization": `Bearer ${key}`,
         "HTTP-Referer": "https://cryptoledger.pro",
         "X-Title": "Crypto Ledger Pro"
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash:free",
+        model: "openrouter/free",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
@@ -54,7 +77,7 @@ Your review MUST be structured in Markdown covering exactly these three areas:
 - Outcome: ${trade.outcome} (PNL: $${trade.pnl})
 - Rationale (Trader's text): ${trade.rationale || "No rationale provided."}`;
 
-  if (isAiDemoMode) {
+  if (isAiDemoMode()) {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     
@@ -108,7 +131,7 @@ ${JSON.stringify(trades, null, 2)}
 Web3 activities array for the last 7 days:
 ${JSON.stringify(activities, null, 2)}`;
 
-  if (isAiDemoMode) {
+  if (isAiDemoMode()) {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Simple analysis of actual data to make it look responsive

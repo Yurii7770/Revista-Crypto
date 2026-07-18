@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { analyzeSingleTrade, analyzeWeeklyTrades, isAiDemoMode } from '../services/openrouter';
-import { BrainCircuit, Play, Sparkles, ChevronRight, CheckSquare, Award, AlertTriangle, Lightbulb, RefreshCw, AlertCircle } from 'lucide-react';
+import { analyzeSingleTrade, analyzeWeeklyTrades, isAiDemoMode, getOpenRouterKey, setOpenRouterKey } from '../services/openrouter';
+import { BrainCircuit, Play, Sparkles, ChevronRight, CheckSquare, Award, AlertTriangle, Lightbulb, RefreshCw, AlertCircle, Key } from 'lucide-react';
 
 export default function AIReview({ trades = [], activities = [], initialSelectedTrade = null }) {
   const [activeSubTab, setActiveSubTab] = useState('single'); // 'single' or 'weekly'
@@ -12,6 +12,9 @@ export default function AIReview({ trades = [], activities = [], initialSelected
   const [weeklyLoading, setWeeklyLoading] = useState(false);
   const [weeklyResult, setWeeklyResult] = useState(null);
   const [weeklyError, setWeeklyError] = useState('');
+
+  const [apiKey, setApiKey] = useState(getOpenRouterKey());
+  const [showKeyInput, setShowKeyInput] = useState(false);
 
   // 1. Get closed trades
   const closedTrades = trades.filter(t => t.outcome === 'Take Profit' || t.outcome === 'Stop Loss');
@@ -176,11 +179,70 @@ export default function AIReview({ trades = [], activities = [], initialSelected
         </button>
       </div>
 
-      {isAiDemoMode && (
-        <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-2xl text-xs text-amber-400/90 flex gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+      {/* API Key configuration banner / settings */}
+      <div className="glass-panel p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950/20" id="openrouter-config-banner">
+        <div className="flex items-center gap-2.5">
+          <Key className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
           <div>
-            OpenRouter API Key not configured. Enabled simulated AI coach reviews.
+            <div className="text-xs font-bold text-slate-200">OpenRouter API Configuration</div>
+            <div className="text-[10px] text-slate-400 mt-0.5">
+              {apiKey 
+                ? `Key configured (starts with ${apiKey.substring(0, 10)}...). Live AI reviews active.`
+                : "No API key configured. Currently running in offline Demo Mode (simulated reviews)."}
+            </div>
+          </div>
+        </div>
+        <button
+          id="btn-toggle-key-input"
+          onClick={() => setShowKeyInput(!showKeyInput)}
+          className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-slate-100 rounded-xl text-[10px] font-bold border border-slate-700/50 transition-all w-fit cursor-pointer active:scale-95"
+        >
+          {apiKey ? "Manage Key" : "Configure API Key"}
+        </button>
+      </div>
+
+      {showKeyInput && (
+        <div className="glass-panel p-5 bg-slate-900/50 border border-slate-800/80 rounded-2xl space-y-4" id="openrouter-key-settings">
+          <div className="text-xs font-bold text-slate-200 uppercase tracking-wider">Configure your OpenRouter Key</div>
+          <p className="text-[10px] text-slate-400 leading-relaxed">
+            To generate live, real-time AI reviews, enter your OpenRouter API key. 
+            The key is saved **only in your browser's local storage** on this device, keeping it 100% secure. 
+            It is never sent to Netlify or saved in any shared database.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2.5 max-w-lg">
+            <input
+              id="input-openrouter-key"
+              type="password"
+              placeholder="sk-or-v1-..."
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              className="flex-1 px-3 py-2 bg-slate-950 border border-slate-700/60 rounded-xl text-xs focus:outline-none focus:border-emerald-500/80 text-slate-200 placeholder-slate-700 font-mono"
+            />
+            <div className="flex gap-2">
+              <button
+                id="btn-save-openrouter-key"
+                onClick={() => {
+                  setOpenRouterKey(apiKey);
+                  setShowKeyInput(false);
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md shadow-emerald-500/10 active:scale-95 cursor-pointer"
+              >
+                Save Key
+              </button>
+              {apiKey && (
+                <button
+                  id="btn-clear-openrouter-key"
+                  onClick={() => {
+                    setOpenRouterKey("");
+                    setApiKey("");
+                    setShowKeyInput(false);
+                  }}
+                  className="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 font-bold rounded-xl text-xs transition-all border border-rose-500/20 active:scale-95 cursor-pointer"
+                >
+                  Clear Key
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
