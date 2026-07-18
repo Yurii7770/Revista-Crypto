@@ -161,7 +161,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row bg-slate-900 min-h-screen">
+    <div className="flex flex-col md:flex-row bg-slate-900 h-screen overflow-hidden">
       {/* Mobile Sticky Header */}
       <header className="md:hidden bg-slate-950/80 border-b border-slate-800/80 p-4 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md">
         <div className="flex items-center gap-2.5">
@@ -198,7 +198,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className={`flex-1 overflow-y-auto h-screen p-4 sm:p-8 relative transition-all duration-500 ${activePattern}`}>
+      <main className={`flex-1 overflow-y-auto p-4 sm:p-8 relative transition-all duration-500 ${activePattern}`}>
         {/* Subtle dynamic background image (very low opacity to act as texture) */}
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-[0.07] mix-blend-overlay pointer-events-none transition-all duration-700"

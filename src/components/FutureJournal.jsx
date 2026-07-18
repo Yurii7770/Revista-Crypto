@@ -72,7 +72,8 @@ export default function FutureJournal({ trades = [], onAddTrade, onDeleteTrade, 
             </span>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-850 text-[9px] font-bold text-slate-500 uppercase tracking-wider pb-2">
@@ -116,6 +117,57 @@ export default function FutureJournal({ trades = [], onAddTrade, onDeleteTrade, 
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card List View */}
+          <div className="grid grid-cols-1 gap-3 md:hidden">
+            {activePositions.map((pos, idx) => {
+              const isLong = pos.positionAmt > 0;
+              const absAmt = Math.abs(pos.positionAmt);
+              const isProfit = pos.unRealizedProfit >= 0;
+
+              return (
+                <div key={idx} className="glass-card p-4 space-y-3 border border-slate-800/80 bg-slate-900/40">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-slate-100 text-sm">{pos.symbol}</span>
+                    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
+                      isLong 
+                        ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' 
+                        : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
+                    }`}>
+                      {isLong ? <ArrowUpRight className="w-2.5 h-2.5" /> : <ArrowDownRight className="w-2.5 h-2.5" />}
+                      {isLong ? 'Long' : 'Short'} ({pos.leverage}x)
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-[10px] border-t border-b border-slate-800/50 py-2 text-slate-400">
+                    <div>
+                      <span>Amt: </span>
+                      <span className="text-slate-200 font-mono font-bold">{absAmt}</span>
+                    </div>
+                    <div>
+                      <span>Margin: </span>
+                      <span className="text-slate-200 capitalize font-medium">{pos.marginType}</span>
+                    </div>
+                    <div>
+                      <span>Entry: </span>
+                      <span className="text-slate-200 font-mono">${pos.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div>
+                      <span>Mark: </span>
+                      <span className="text-slate-200 font-mono">${pos.markPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-0.5">
+                    <span className="text-[10px] text-slate-500">Unrealized PNL:</span>
+                    <span className={`font-mono text-xs font-bold ${isProfit ? 'text-emerald-400 glow-emerald' : 'text-rose-400 glow-rose'}`}>
+                      {isProfit ? '+' : ''}${pos.unRealizedProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -167,7 +219,8 @@ export default function FutureJournal({ trades = [], onAddTrade, onDeleteTrade, 
       </div>
 
       {/* Grid Container / Table */}
-      <div className="overflow-x-auto rounded-xl border border-slate-700/30">
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-700/30">
         <table className="w-full border-collapse text-left text-xs text-slate-300">
           <thead>
             <tr className="bg-slate-950/40 border-b border-slate-700/30 text-slate-400 font-semibold uppercase tracking-wider">
@@ -306,6 +359,96 @@ export default function FutureJournal({ trades = [], onAddTrade, onDeleteTrade, 
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Cards View */}
+      <div className="space-y-4 md:hidden">
+        {sortedTrades.length === 0 ? (
+          <div className="py-8 text-center text-slate-500 text-xs bg-slate-950/20 border border-slate-800/80 rounded-xl">
+            No trades found. Adjust filters or add a new position.
+          </div>
+        ) : (
+          sortedTrades.map((trade) => {
+            const isLong = trade.direction === 'Long';
+            const isProfit = Number(trade.pnl) >= 0;
+
+            return (
+              <div key={trade.id} className="glass-card p-4 space-y-3.5 border border-slate-800/80 bg-slate-900/20">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="font-bold text-slate-100 text-sm block">{trade.token_name}</span>
+                    <span className="text-[9px] text-slate-500 block mt-0.5">{formatDate(trade.date_closed)}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className={`inline-flex px-1.5 py-0.5 rounded font-bold text-[8px] uppercase tracking-wide ${
+                      isLong 
+                        ? 'text-emerald-400 bg-emerald-500/10' 
+                        : 'text-rose-400 bg-rose-500/10'
+                    }`}>
+                      {trade.direction}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700/50 text-[8px] font-semibold text-slate-400">
+                      {trade.exchange}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[10px] border-t border-b border-slate-800/40 py-2.5 text-slate-400">
+                  <div>
+                    <span>Size: </span>
+                    <span className="text-slate-200 font-mono">${Number(trade.position_size).toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span>Outcome: </span>
+                    <span className={`inline-flex items-center gap-1 font-semibold ${
+                      trade.outcome === 'Take Profit' ? 'text-emerald-400' : 'text-rose-400'
+                    }`}>
+                      <span className={`w-1 h-1 rounded-full ${
+                        trade.outcome === 'Take Profit' ? 'bg-emerald-400' : 'bg-rose-400'
+                      }`}></span>
+                      {trade.outcome}
+                    </span>
+                  </div>
+                </div>
+
+                {trade.rationale && (
+                  <div className="bg-slate-950/40 p-2.5 rounded-lg border border-slate-850/50 text-[10px] text-slate-400 leading-relaxed">
+                    <span className="font-semibold block text-slate-300 text-[9px] uppercase tracking-wider mb-1">Setup / Rationale</span>
+                    {trade.rationale}
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center pt-1.5 border-t border-slate-800/20">
+                  <div>
+                    <span className="text-[10px] text-slate-500 block">Net PNL</span>
+                    <span className={`font-mono text-xs font-bold ${
+                      isProfit ? 'text-emerald-400 glow-emerald' : 'text-rose-400 glow-rose'
+                    }`}>
+                      {isProfit ? '+' : ''}${Number(trade.pnl).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => onTriggerAudit(trade)}
+                      title="AI Trade Audit"
+                      className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-750 border border-slate-700/60 text-emerald-400 hover:text-emerald-300 rounded-lg text-[10px] font-bold transition-all cursor-pointer"
+                    >
+                      <BrainCircuit className="w-3.5 h-3.5" />
+                      <span>AI Audit</span>
+                    </button>
+                    <button
+                      onClick={() => onDeleteTrade(trade.id)}
+                      title="Delete Position"
+                      className="p-1.5 bg-slate-850 hover:bg-rose-500/10 border border-slate-700/40 hover:border-rose-500/30 text-slate-500 hover:text-rose-400 rounded-lg transition-all cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Footer Info */}
